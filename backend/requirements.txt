@@ -13,6 +13,8 @@ langchain-groq
 
 groq
 pillow
+pymupdf        # scanned-PDF OCR fallback (fitz)
+mutagen        # audio duration reading (optional — degrades gracefully if absent)
 
 
 

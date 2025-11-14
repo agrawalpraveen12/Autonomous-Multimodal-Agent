@@ -1,24 +1,34 @@
-from youtube_transcript_api import YouTubeTranscriptApi
+"""YouTube transcript fetching.
+
+Returns a structured ``tool_result`` dict so the agent graph can branch
+consistently.
+"""
 import re
+from youtube_transcript_api import YouTubeTranscriptApi
 
-def extract_video_id(url: str):
-    """
-    Extracts video ID from various YouTube URL formats.
-    """
-    regex = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
-    match = re.search(regex, url)
-    if match:
-        return match.group(1)
-    return None
+from .util import tool_result
 
-def get_youtube_transcript(url: str):
+
+def extract_video_id(url: str) -> str | None:
+    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
+    return match.group(1) if match else None
+
+
+def get_youtube_transcript(url: str) -> dict:
+    video_id = extract_video_id(url)
+    if not video_id:
+        return tool_result(
+            False, "",
+            "Could not extract a YouTube video ID from the URL. Please check the link.",
+            source_type="youtube",
+        )
     try:
-        video_id = extract_video_id(url)
-        if not video_id:
-            return "Error: Could not extract video ID from URL."
-            
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-        transcript_text = " ".join([t['text'] for t in transcript_list])
-        return transcript_text
-    except Exception as e:
-        return f"Could not fetch transcript. Video may not have captions available or may be private. Error: {str(e)}"
+        entries = YouTubeTranscriptApi.get_transcript(video_id)
+        text = " ".join(t["text"] for t in entries)
+        return tool_result(True, text, None, source_type="youtube", video_id=video_id)
+    except Exception as exc:  # noqa: BLE001
+        return tool_result(
+            False, "",
+            f"Could not fetch transcript — the video may not have captions or may be private. ({exc})",
+            source_type="youtube", video_id=video_id,
+        )

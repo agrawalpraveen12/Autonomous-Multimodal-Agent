@@ -30,12 +30,15 @@ This application is an autonomous agentic system that:
 
 Built for the DataSmith AI Gen AI position assignment.
 
-### Demo
+## Demo
 
-### Demo
+### Chat Interface & Streaming Responses
 
-![Application Interface](frontend/demo.png)
+![Demo — Chat Interface](demo1.png)
 
+### Multimodal Inputs & Agent Plan
+
+![Demo — File Upload & Agent Logs](demo2.png)
 
 ---
 
@@ -158,12 +161,20 @@ AgentState {
 
 ### User Interface
 
-- Clean, minimal chat interface
-- File upload support
-- Text-only outputs
-- Collapsible "View Extracted Content" section
-- Dark theme for reduced eye strain
-- Responsive design
+- Streaming responses — tokens appear as they're generated
+- Syntax-highlighted code blocks (highlight.js, github-dark)
+- Live health indicator dot in header
+- Action badge on every response (Summarization / Sentiment / Code / Chat)
+- Copy button on all bot messages
+- Thumbs up/down micro-feedback
+- Agent plan & timestamped log timeline (collapsible)
+- Drag-and-drop file upload with overlay
+- Upload progress bar
+- Auto-growing textarea
+- Clarification-waiting pulsing banner
+- Example prompt chips on welcome screen
+- New chat button
+- Dark theme, responsive layout
 
 ---
 
@@ -181,6 +192,8 @@ AgentState {
 ### Frontend
 - **HTML/CSS/JavaScript** (Vanilla)
 - **Markdown Rendering**: Marked.js
+- **Syntax Highlighting**: highlight.js (github-dark theme)
+- **Streaming**: Fetch ReadableStream / Server-Sent Events
 
 ### Key Libraries
 - langchain-groq
@@ -310,13 +323,18 @@ http://127.0.0.1:8000
 - **Description**: Redirects to static frontend
 - **Response**: 307 Temporary Redirect
 
-#### 2. POST /api/chat
-- **Description**: Main chat endpoint for agent interaction
+#### 2. GET /api/health
+- **Description**: Health check endpoint for live status indicator
+- **Response**: `{"status": "ok", "model": "llama-3.3-70b-versatile"}`
+
+#### 3. POST /api/chat
+- **Description**: Main chat endpoint (full response)
 - **Request Body**:
   ```json
   {
     "message": "string",
-    "file_path": "string (optional)"
+    "file_path": "string (optional)",
+    "session_id": "string (optional)"
   }
   ```
 - **Response**:
@@ -324,11 +342,22 @@ http://127.0.0.1:8000
   {
     "response": "string",
     "action": "string",
-    "extracted_content": "string (optional)"
+    "extracted_content": "string",
+    "plan": "string",
+    "logs": ["string"],
+    "session_id": "string"
   }
   ```
 
-#### 3. POST /api/upload
+#### 4. POST /api/chat/stream
+- **Description**: Streaming chat endpoint — returns Server-Sent Events
+- **Request Body**: same as `/api/chat`
+- **SSE Event types**:
+  - `{"type": "token", "content": "..."}` — incremental token
+  - `{"type": "done", "action": "...", "logs": [...], "session_id": "..."}` — final metadata
+  - `{"type": "error", "content": "..."}` — error event
+
+#### 5. POST /api/upload
 - **Description**: File upload endpoint
 - **Request**: multipart/form-data with file
 - **Response**:
