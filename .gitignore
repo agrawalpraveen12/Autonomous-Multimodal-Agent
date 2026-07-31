@@ -1,29 +1,13 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-ENV/
-
-# FastAPI
-*.log
-temp_uploads/
-
-# Environment variables
+*.egg-info/
 .env
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
+.venv
+venv/
+dist/
+build/
 .DS_Store
-Thumbs.db
-
-# Test files
-test_backend.py
+*.log
+.idea/
+.vscode/
